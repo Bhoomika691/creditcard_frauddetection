@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Manual Prediction - Fraud Detection</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<nav>
+    <b> Credit Card Fraud Detection</b>
+    <span><a href="/">Home</a><a href="/manual">Manual Prediction</a><a href="/upload">File Prediction</a></span>
+</nav>
+
+<main>
+    <h1>Manual Transaction Prediction</h1>
+    <p class="muted">Enter transaction details to evaluate fraud risk using the trained machine learning pipeline.</p>
+
+    <form id="form" class="form">
+        <div class="grid">
+            <div class="form-group">
+                <label for="amount">Amount (INR)</label>
+                <input id="amount" name="amount" type="number" min="0.01" step="0.01" placeholder="e.g. 5000" required>
+            </div>
+
+            <div class="form-group">
+                <label for="transaction_hour">Transaction Hour (0–23)</label>
+                <input id="transaction_hour" name="transaction_hour" type="number" min="0" max="23" placeholder="e.g. 2" required>
+            </div>
+
+            <div class="form-group">
+                <label for="merchant_category">Merchant Type</label>
+                <select id="merchant_category" name="merchant_category" required>
+                    <option value="">Select merchant type</option>
+                    {% if options.merchant_category %}
+                        {% for x in options.merchant_category %}
+                            <option value="{{ x }}">{{ x.replace('_',' ').title() }}</option>
+                        {% endfor %}
+                    {% else %}
+                        <option value="Electronics">Electronics</option>
+                        <option value="Entertainment">Entertainment</option>
+                        <option value="Fashion">Fashion</option>
+                        <option value="Fuel">Fuel</option>
+                        <option value="Groceries">Groceries</option>
+                        <option value="Healthcare">Healthcare</option>
+                        <option value="Jewelry">Jewelry</option>
+                        <option value="Restaurant">Restaurant</option>
+                        <option value="Travel">Travel</option>
+                        <option value="Utilities">Utilities</option>
+                    {% endif %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="transaction_type">Transaction Type</label>
+                <select id="transaction_type" name="transaction_type" required>
+                    <option value="">Select transaction type</option>
+                    {% if options.transaction_type %}
+                        {% for x in options.transaction_type %}
+                            <option value="{{ x }}">{{ x.replace('_',' ').title() }}</option>
+                        {% endfor %}
+                    {% else %}
+                        <option value="Credit Card">Credit Card</option>
+                        <option value="Debit Card">Debit Card</option>
+                        <option value="Net Banking">Net Banking</option>
+                        <option value="Upi">Upi</option>
+                        <option value="Wallet">Wallet</option>
+                    {% endif %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="location">Transaction Location</label>
+                <select id="location" name="location" required>
+                    <option value="">Select location</option>
+                    {% if options.location %}
+                        {% for x in options.location %}
+                            <option value="{{ x }}">{{ x }}</option>
+                        {% endfor %}
+                    {% else %}
+                        <option value="Bengaluru">Bengaluru</option>
+                        <option value="Chennai">Chennai</option>
+                        <option value="Coimbatore">Coimbatore</option>
+                        <option value="Delhi">Delhi</option>
+                        <option value="Hyderabad">Hyderabad</option>
+                        <option value="Kolkata">Kolkata</option>
+                        <option value="Mumbai">Mumbai</option>
+                        <option value="Pune">Pune</option>
+                        <option value="Vijayawada">Vijayawada</option>
+                        <option value="Visakhapatnam">Visakhapatnam</option>
+                    {% endif %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="transactions_last_24h">Transactions in Last 24h</label>
+                <input id="transactions_last_24h" name="transactions_last_24h" type="number" min="0" placeholder="e.g. 5" required>
+            </div>
+
+            <div class="form-group">
+                <label for="avg_transaction_amount">Average Transaction Amount Per Month</label>
+                <input id="avg_transaction_amount" name="avg_transaction_amount" type="number" min="0.01" step="0.01" placeholder="e.g. 1200" required>
+            </div>
+
+            <div class="form-group">
+                <label for="international">Foreign / International</label>
+                <select id="international" name="international" required>
+                    <option value="">Select</option>
+                    <option value="No">No — Domestic</option>
+                    <option value="Yes">Yes — Foreign / International</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="distance_from_home_km">Distance From Home (km)</label>
+                <input id="distance_from_home_km" name="distance_from_home_km" type="number" min="0" step="0.01" placeholder="e.g. 250" required>
+            </div>
+        </div>
+
+        <button class="btn" type="submit"> Detect Fraud</button>
+        <p id="err" class="error"></p>
+    </form>
+
+    <section id="result" class="result hidden">
+        <h2>Fraud Analysis Result</h2>
+        <div class="score"><span id="score">0</span></div>
+        <h3>Fraud Risk Score / 100</h3>
+
+        <div class="result-grid">
+            <div><b>Probability</b><span id="prob"></span></div>
+            <div><b>Risk Level</b><span id="risk"></span></div>
+            <div><b>Prediction</b><span id="pred"></span></div>
+            <div><b>Recommended Action</b><span id="action"></span></div>
+        </div>
+
+        <div class="cause-panel">
+            <h3> Risk Factors & Model Explanations</h3>
+            <ul id="causes" class="causes-list"></ul>
+        </div>
+    </section>
+</main>
+
+<script>
+const form = document.getElementById('form');
+
+const icons = {
+    amount: '₹',
+    time: '◷',
+    velocity: '↗',
+    international: '🌐',
+    distance: '⌖',
+    model: '🧠',
+    safe: '✓'
+};
+
+form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const err = document.getElementById('err');
+    err.textContent = '';
+
+    try {
+        const data = Object.fromEntries(new FormData(form));
+        const response = await fetch('/manual/predict', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            err.textContent = result.error || 'Prediction failed.';
+            return;
+        }
+
+        document.getElementById('result').classList.remove('hidden');
+        document.getElementById('score').textContent = result.fraud_score;
+        
+        const numericScore = Number(result.fraud_score);
+        const scoreDegree = Math.max(0, Math.min(360, numericScore * 3.6));
+        
+        let themeColor = '#18a979'; // Green for LOW risk (0-25)
+        if (numericScore >= 66) {
+            themeColor = '#e5484d'; // Red for HIGH risk (66-100)
+        } else if (numericScore >= 26) {
+            themeColor = '#f59e0b'; // Amber for MEDIUM risk (26-65)
+        }
+
+        document.querySelector('.score').style.background =
+            `conic-gradient(${themeColor} 0deg, ${themeColor} ${scoreDegree}deg, #e7eaf3 ${scoreDegree}deg 360deg)`;
+        
+        document.getElementById('prob').textContent = Number(result.fraud_probability).toFixed(2) + '%';
+        
+        const riskElem = document.getElementById('risk');
+        riskElem.textContent = result.risk_level;
+        riskElem.className = 'risk-' + (result.risk_level || '').toLowerCase();
+
+        document.getElementById('pred').textContent = result.prediction;
+        document.getElementById('action').textContent = result.recommended_action;
+
+        const list = document.getElementById('causes');
+        list.innerHTML = '';
+
+        (result.possible_causes || []).forEach(item => {
+            const li = document.createElement('li');
+            li.className = 'cause-item';
+            li.innerHTML = `
+                <div class="cause-icon">${icons[item.type] || '!'}</div>
+                <div>
+                    <strong>${item.title}</strong>
+                    <small>${item.detail}</small>
+                </div>`;
+            list.appendChild(li);
+        });
+
+        document.getElementById('result').scrollIntoView({behavior:'smooth'});
+    } catch (error) {
+        err.textContent = 'Unable to connect to the prediction service.';
+    }
+});
+</script>
+</body>
+</html>

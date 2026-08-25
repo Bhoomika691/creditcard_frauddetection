@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Credit Card Fraud Detection</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<nav>
+    <b> Credit Card Fraud Detection</b>
+    <span>
+        <a href="/">Home</a>
+        <a href="/manual">Manual Prediction</a>
+        <a href="/upload">File Prediction</a>
+    </span>
+</nav>
+
+<main>
+    <section class="hero">
+        <h1>Smart Credit Card Fraud Detection</h1>
+        <p>Detect whether a transaction is genuine or fraudulent using amount, transaction time, merchant type, location and transaction behavior.</p>
+    </section>
+
+    <section class="cards">
+        <article class="card">
+            <h2> Manual Prediction</h2>
+            <p>Enter transaction amount, time, merchant type, location and other transaction behavior to receive a fraud score and risk decision.</p>
+            <a class="btn" href="/manual">Start Prediction →</a>
+        </article>
+
+        <article class="card">
+            <h2> File Prediction</h2>
+            <p>Upload a CSV using the same model features, explore risk charts and review genuine, suspicious and fraudulent transactions.</p>
+            <a class="btn" href="/upload">Upload CSV →</a>
+        </article>
+    </section>
+
+    {% if meta and meta.best_model %}
+    <section class="cause-panel" style="margin-top:28px;">
+        <h3> Active ML Model Information</h3>
+        <div class="stats" style="margin-top:16px;">
+            <div>Model Algorithm<br><b>{{ meta.best_model }}</b></div>
+            <div>F1 Score<br><b>{{ meta.test_metrics.f1 if meta.test_metrics else 'N/A' }}</b></div>
+            <div>Accuracy<br><b>{{ meta.test_metrics.accuracy if meta.test_metrics else 'N/A' }}</b></div>
+            <div>Precision<br><b>{{ meta.test_metrics.precision if meta.test_metrics else 'N/A' }}</b></div>
+            <div>Recall<br><b>{{ meta.test_metrics.recall if meta.test_metrics else 'N/A' }}</b></div>
+           
+        </div>
+    </section>
+    {% endif %}
+</main>
+</body>
+</html>

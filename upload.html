@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>File Prediction - Credit Card Fraud Detection</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<nav>
+    <b> Credit Card Fraud Detection</b>
+    <span><a href="/">Home</a><a href="/manual">Manual Prediction</a><a href="/upload">File Prediction</a></span>
+</nav>
+
+<main>
+    <h1>CSV Batch Prediction Session</h1>
+    <p class="muted">Upload a CSV containing model feature columns: </p>
+
+    <form id="upload" class="upload">
+        <input id="file" type="file" accept=".csv" required>
+        <button class="btn"> Detect Fraud in CSV</button>
+        <p id="err" class="error"></p>
+    </form>
+
+    <section id="out" class="hidden">
+        <div class="stats">
+            <div>Total<br><b id="total"></b></div>
+            <div>Genuine / Low Risk (0–25)<br><b id="legit"></b></div>
+            <div>Medium Risk (26–65)<br><b id="medium"></b></div>
+            <div>Fraudulent / High Risk (66–100)<br><b id="fraud"></b></div>
+            <div>High Risk %<br><b id="fp"></b></div>
+            <div>Average Score<br><b id="avg"></b></div>
+            <div>Best Model<br><b id="best"></b></div>
+        </div>
+
+        <div class="charts">
+            <div class="chart donut">
+                <h3> Genuine vs Suspicious vs Fraudulent</h3>
+                <canvas id="c1"></canvas>
+            </div>
+
+            <div class="chart">
+                <h3> Fraud Risk Score Distribution</h3>
+                <canvas id="c2"></canvas>
+            </div>
+
+            <div class="chart wide">
+                <h3> High-Risk Transactions by Merchant Type</h3>
+                <canvas id="c3"></canvas>
+            </div>
+        </div>
+
+        <div class="tablebox">
+            <div class="table-actions">
+                <div>
+                    <h2>Prediction Results Preview</h2>
+                    <p class="muted">Summary preview of predictions retaining transaction characteristics and risk scores.</p>
+                </div>
+                <a class="btn" href="/download">⬇ Download Results CSV</a>
+            </div>
+
+            <div class="scroll">
+                <table>
+                    <thead id="head"></thead>
+                    <tbody id="body"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+</main>
+
+<script>
+const uploadForm = document.getElementById('upload');
+let charts = [];
+
+const displayColumns = [
+    'amount',
+    'transaction_hour',
+    'merchant_category',
+    'transaction_type',
+    'location',
+    'international',
+    'fraud_probability',
+    'fraud_score',
+    'prediction',
+    'risk_level',
+    'recommended_action'
+];
+
+function labelFor(column) {
+    return String(column || '').replaceAll('_', ' ');
+}
+
+function formatValue(column, value) {
+    if (column === 'international') {
+        const text = String(value ?? '').strip ? String(value).trim().toLowerCase() : '';
+        if (['1','yes','true','y','international','intl'].includes(text)) return 'Yes';
+        if (['0','no','false','n','domestic'].includes(text)) return 'No';
+    }
+
+    if (column === 'fraud_probability') {
+        const number = Number(value);
+        return Number.isFinite(number) ? number.toFixed(2) + '%' : '';
+    }
+
+    if (column === 'amount') {
+        const number = Number(value);
+        return Number.isFinite(number) ? '₹' + number.toFixed(2) : value;
+    }
+
+    if (column === 'fraud_score') return Number(value);
+    return value ?? '';
+}
+
+function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({
+        '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+    }[char]));
+}
+
+function badge(value) {
+    const text = escapeHtml(value);
+    const lower = text.toLowerCase();
+    if (lower === 'low') return `<span class="badge badge-low">${text}</span>`;
+    if (lower === 'medium') return `<span class="badge badge-medium">${text}</span>`;
+    if (lower === 'high') return `<span class="badge badge-high">${text}</span>`;
+    return text;
+}
+
+uploadForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const err = document.getElementById('err');
+    err.textContent = '';
+
+    try {
+        const selected = document.getElementById('file').files[0];
+        const fd = new FormData();
+        fd.append('file', selected);
+
+        const response = await fetch('/upload/predict', {method:'POST', body:fd});
+        const data = await response.json();
+
+        if (!response.ok) {
+            err.textContent = data.error || 'Prediction failed.';
+            return;
+        }
+
+        document.getElementById('out').classList.remove('hidden');
+        document.getElementById('total').textContent = data.summary.total;
+        document.getElementById('legit').textContent = data.summary.legitimate;
+        document.getElementById('medium').textContent = data.summary.medium;
+        document.getElementById('fraud').textContent = data.summary.fraud;
+        document.getElementById('fp').textContent = data.summary.fraud_percentage + '%';
+        document.getElementById('avg').textContent = data.summary.average_score;
+        document.getElementById('best').textContent = data.best_model;
+
+        charts.forEach(c => c.destroy());
+        charts = [];
+
+        const common = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {legend: {position: 'bottom'}}
+        };
+
+        if (typeof Chart !== 'undefined') {
+            charts.push(new Chart(document.getElementById('c1'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Genuine / Low Risk (0–25)', 'Suspicious / Medium Risk (26–65)', 'Fraudulent / High Risk (66–100)'],
+                    datasets: [{data: data.charts.risk, backgroundColor: ['#18a979', '#f59e0b', '#e5484d'], borderWidth: 0}]
+                },
+                options: {
+                    ...common,
+                    plugins: {
+                        ...common.plugins,
+                        tooltip: {callbacks: {label: (context) => {
+                            const total = context.dataset.data.reduce((a,b) => a+b, 0);
+                            const value = context.raw || 0;
+                            const pct = total ? ((value / total) * 100).toFixed(1) : '0.0';
+                            return ` ${context.label}: ${value} (${pct}%)`;
+                        }}}
+                    }
+                }
+            }));
+
+            charts.push(new Chart(document.getElementById('c2'), {
+                type: 'bar',
+                data: {
+                    labels: ['0–25', '26–45', '46–65', '66–85', '86–100'],
+                    datasets: [{label: 'Transactions', data: data.charts.score, backgroundColor: ['#18a979', '#5ec6a4', '#f59e0b', '#f06a6e', '#e5484d'], borderRadius: 8}]
+                },
+                options: {...common, scales: {y: {beginAtZero: true}}}
+            }));
+
+            charts.push(new Chart(document.getElementById('c3'), {
+                type: 'bar',
+                data: {
+                    labels: (data.charts.merchant_category_labels || []).map(x => String(x || '').replaceAll('_',' ').toUpperCase()),
+                    datasets: [{label: 'High-Risk Transactions', data: data.charts.merchant_category_high_risk, backgroundColor: '#6d5dfc', borderRadius: 8}]
+                },
+                options: {...common, indexAxis: 'y', scales: {x: {beginAtZero: true}}}
+            }));
+        }
+
+        document.getElementById('head').innerHTML =
+            '<tr>' + displayColumns.map(c => `<th>${labelFor(c)}</th>`).join('') + '</tr>';
+
+        document.getElementById('body').innerHTML = data.preview.map(row => {
+            return '<tr>' + displayColumns.map(c => {
+                const value = escapeHtml(formatValue(c, row[c]));
+                return `<td>${c === 'risk_level' ? badge(value) : value}</td>`;
+            }).join('') + '</tr>';
+        }).join('');
+
+        document.getElementById('out').scrollIntoView({behavior:'smooth'});
+    } catch (error) {
+        err.textContent = 'Unable to connect to the prediction service.';
+    }
+});
+</script>
+</body>
+</html>

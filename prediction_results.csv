@@ -1,0 +1,21 @@
+amount,transaction_hour,merchant_category,transaction_type,location,transactions_last_24h,avg_transaction_amount,international,distance_from_home_km,fraud_probability,fraud_score,prediction,risk_level,possible_cause,recommended_action
+92000,1,Jewelry,Online,Mumbai,14,1800,Yes,500,99.55999755859375,100,FRAUDULENT TRANSACTION,HIGH,Unusually high transaction amount | Late-night transaction | High transaction frequency | Foreign / international transaction,BLOCK CARD / TRANSACTION
+350,11,Grocery,POS,Delhi,1,1000,No,2,1.940000057220459,2,GENUINE TRANSACTION,LOW,No major risk factors detected,APPROVE TRANSACTION
+3400,15,Shopping,Online,Mumbai,3,2500,No,35,39.650001525878906,40,SUSPICIOUS TRANSACTION,MEDIUM,No major risk factors detected,CROSS-VERIFY WITH CARD HOLDER
+145000,3,Electronics,Online,Kolkata,16,2500,Yes,650,99.68000030517578,100,FRAUDULENT TRANSACTION,HIGH,Unusually high transaction amount | Late-night transaction | High transaction frequency | Foreign / international transaction,BLOCK CARD / TRANSACTION
+1800,19,Fuel,POS,Pune,2,1800,No,10,18.579999923706055,19,GENUINE TRANSACTION,LOW,No major risk factors detected,APPROVE TRANSACTION
+62000,2,Travel,Online,Bengaluru,9,1400,Yes,320,99.44999694824219,99,FRAUDULENT TRANSACTION,HIGH,Unusually high transaction amount | Late-night transaction | High transaction frequency | Foreign / international transaction,BLOCK CARD / TRANSACTION
+5200,17,Electronics,POS,Delhi,4,2400,No,42,51.77000045776367,52,SUSPICIOUS TRANSACTION,MEDIUM,No major risk factors detected,CROSS-VERIFY WITH CARD HOLDER
+850,13,Food,Contactless,Chennai,1,900,No,6,11.1899995803833,11,GENUINE TRANSACTION,LOW,No major risk factors detected,APPROVE TRANSACTION
+88000,4,Jewelry,Online,Hyderabad,12,2000,Yes,480,99.51000213623047,100,FRAUDULENT TRANSACTION,HIGH,Unusually high transaction amount | Late-night transaction | High transaction frequency | Foreign / international transaction,BLOCK CARD / TRANSACTION
+2200,9,Grocery,POS,Ahmedabad,2,1600,No,12,23.25,23,GENUINE TRANSACTION,LOW,No major risk factors detected,APPROVE TRANSACTION
+115000,2,Jewelry,Online,Pune,13,1900,Yes,520,99.5999984741211,100,FRAUDULENT TRANSACTION,HIGH,Unusually high transaction amount | Late-night transaction | High transaction frequency | Foreign / international transaction,BLOCK CARD / TRANSACTION
+500,10,Food,POS,Mumbai,1,800,No,4,5.980000019073486,6,GENUINE TRANSACTION,LOW,No major risk factors detected,APPROVE TRANSACTION
+3800,14,Shopping,Online,Bengaluru,3,2800,No,32,38.16999816894531,38,SUSPICIOUS TRANSACTION,MEDIUM,No major risk factors detected,CROSS-VERIFY WITH CARD HOLDER
+130000,1,Electronics,Online,Delhi,14,2200,Yes,580,99.61000061035156,100,FRAUDULENT TRANSACTION,HIGH,Unusually high transaction amount | Late-night transaction | High transaction frequency | Foreign / international transaction,BLOCK CARD / TRANSACTION
+2100,17,Fuel,Contactless,Chennai,2,1900,No,8,17.760000228881836,18,GENUINE TRANSACTION,LOW,No major risk factors detected,APPROVE TRANSACTION
+70000,3,Travel,Online,Kolkata,10,1600,Yes,390,99.54000091552734,100,FRAUDULENT TRANSACTION,HIGH,Unusually high transaction amount | Late-night transaction | High transaction frequency | Foreign / international transaction,BLOCK CARD / TRANSACTION
+4800,15,Electronics,POS,Hyderabad,4,2300,No,45,52.619998931884766,53,SUSPICIOUS TRANSACTION,MEDIUM,No major risk factors detected,CROSS-VERIFY WITH CARD HOLDER
+950,12,Grocery,POS,Pune,1,1100,No,5,8.210000038146973,8,GENUINE TRANSACTION,LOW,No major risk factors detected,APPROVE TRANSACTION
+91000,2,Jewelry,Online,Bengaluru,11,1700,Yes,440,99.5199966430664,100,FRAUDULENT TRANSACTION,HIGH,Unusually high transaction amount | Late-night transaction | High transaction frequency | Foreign / international transaction,BLOCK CARD / TRANSACTION
+1500,18,Food,POS,Delhi,2,1400,No,7,17.5,18,GENUINE TRANSACTION,LOW,No major risk factors detected,APPROVE TRANSACTION

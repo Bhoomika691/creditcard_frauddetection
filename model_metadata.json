@@ -1,0 +1,87 @@
+{
+  "best_model": "XGBoost",
+  "features": [
+    "amount",
+    "transaction_hour",
+    "merchant_category",
+    "transaction_type",
+    "location",
+    "transactions_last_24h",
+    "avg_transaction_amount",
+    "international",
+    "distance_from_home_km"
+  ],
+  "target": "is_fraud",
+  "numeric_features": [
+    "amount",
+    "transaction_hour",
+    "transactions_last_24h",
+    "avg_transaction_amount",
+    "distance_from_home_km",
+    "amount_ratio",
+    "amount_diff",
+    "is_late_night",
+    "exceeds_std_limit",
+    "high_value_tx",
+    "limit_utilization_ratio"
+  ],
+  "categorical_features": [
+    "merchant_category",
+    "transaction_type",
+    "location",
+    "international"
+  ],
+  "class_mapping": {
+    "0": "Low",
+    "1": "Medium",
+    "2": "High"
+  },
+  "cross_validation_results": {
+    "Logistic Regression": {
+      "accuracy": 0.646,
+      "precision": 0.6412,
+      "recall": 0.646,
+      "f1": 0.6399,
+      "f1_macro": 0.591
+    },
+    "Random Forest": {
+      "accuracy": 0.6499,
+      "precision": 0.6607,
+      "recall": 0.6499,
+      "f1": 0.654,
+      "f1_macro": 0.6146
+    },
+    "XGBoost": {
+      "accuracy": 0.6842,
+      "precision": 0.6749,
+      "recall": 0.6842,
+      "f1": 0.6739,
+      "f1_macro": 0.6222
+    }
+  },
+  "test_metrics": {
+    "accuracy": 0.6835,
+    "precision": 0.674,
+    "recall": 0.6835,
+    "f1": 0.6729,
+    "confusion_matrix": [
+      [
+        9535,
+        1620,
+        35
+      ],
+      [
+        3022,
+        3079,
+        392
+      ],
+      [
+        216,
+        1039,
+        1042
+      ]
+    ]
+  },
+  "selection_metric": "f1_weighted",
+  "dataset": "indian_credit_card_fraud_multiclass_100k.csv"
+}
